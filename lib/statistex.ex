@@ -353,6 +353,7 @@ defmodule Statistex do
     count = Keyword.get(options, :sample_size, 0)
     m2 = Keyword.get(options, :m2, 0.0)
     total = Keyword.get(options, :total, 0.0)
+    return_mean = Keyword.get(options, :return_average, false)
 
     mean =
       case {count, total} do
@@ -368,22 +369,23 @@ defmodule Statistex do
           end)
       end
 
-    do_m2(samples, count, mean, m2)
+    do_m2(samples, count, mean, m2, return_mean)
   end
 
   def m2(sample, options) do
     m2([sample], options)
   end
 
-  defp do_m2([], _, _, m2), do: m2
+  defp do_m2([], _, _, m2, false), do: m2
+  defp do_m2([], _, mean, m2, true), do: {m2, mean}
 
-  defp do_m2([sample | rest], count, mean, m2) do
+  defp do_m2([sample | rest], count, mean, m2, return_mean) do
     count = count + 1
     delta = sample - mean
     mean = mean + delta / count
     delta2 = sample - mean
     m2 = m2 + delta * delta2
-    do_m2(rest, count, mean, m2)
+    do_m2(rest, count, mean, m2, return_mean)
   end
 
   @doc """

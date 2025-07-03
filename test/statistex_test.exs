@@ -177,16 +177,22 @@ defmodule Statistex.StatistexTest do
     test "ensure manual on-line variance calculation matches normal API" do
       samples = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-      {sample_size, total, m2} =
-        Enum.reduce(samples, {0, 0, 0.0}, fn sample, {count, total, m2} ->
-          m2 = Statistex.m2(sample, sample_size: count, m2: m2, total: total)
+      {sample_size, average, m2} =
+        Enum.reduce(samples, {0, 0.0, 0.0}, fn sample, {count, average, m2} ->
+          {m2, average} =
+            Statistex.m2(sample,
+              sample_size: count,
+              m2: m2,
+              average: average,
+              return_average: true
+            )
+
           count = count + 1
-          total = total + sample
-          {count, total, m2}
+          {count, average, m2}
         end)
 
       assert sample_size == Statistex.sample_size(samples)
-      assert total == Statistex.total(samples)
+      assert average == Statistex.average(samples)
       assert m2 == Statistex.m2(samples)
 
       variance = Statistex.variance(:ignored, sample_size: sample_size, m2: m2)
